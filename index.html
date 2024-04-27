@@ -36,10 +36,10 @@
         window.Telegram.WebApp.expand();
 
         function getData(){
-            
+            var objString = JSON.stringify(window.Telegram.WebApp.initDataUnsafe, null, 2); // 第三個參數2是為了美觀格式化
 
             document.querySelector(".ans").innerHTML = window.Telegram.WebApp.initData;
-            document.querySelector(".ans2").innerHTML = window.Telegram.WebApp.initDataUnsafe;
+            document.querySelector(".ans2").innerHTML = objString;
 
         }
 

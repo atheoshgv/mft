@@ -24,9 +24,9 @@
 
         <p class="ans">window.Telegram.WebApp.initData</p>
         <br/>
+        <p class="ans2">decodeURIComponent(window.Telegram.WebApp.initData)</p>
         <br/>
-        <br/>
-        <p class="ans2">window.Telegram.WebApp.initDataUnsafe</p>
+        <p class="ans3">window.Telegram.WebApp.initDataUnsafe</p>
 
 
     </body>
@@ -39,7 +39,8 @@
             var objString = JSON.stringify(window.Telegram.WebApp.initDataUnsafe, null, 2); // 第三個參數2是為了美觀格式化
 
             document.querySelector(".ans").innerHTML = window.Telegram.WebApp.initData;
-            document.querySelector(".ans2").innerHTML = objString;
+            document.querySelector(".ans2").innerHTML = decodeURIComponent(window.Telegram.WebApp.initData);
+            document.querySelector(".ans3").innerHTML = objString;
 
         }
 

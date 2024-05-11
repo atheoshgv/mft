@@ -1,53 +1,691 @@
 <!DOCTYPE html>
-<html>
-    <head>
-        <script src="https://telegram.org/js/telegram-web-app.js"></script>
-        <title>Try</title>
-        <style>
-            button{
-                width: 50px;
-                height: 50px;
-                font-size: 15;
-            }
+<html lang="zh">
+<head>
+    <!-- 
+        後續目標：
+            個別關鍵字關開，呈現以switch或拖曳(1.最下方加入分隔線，拖拉至分隔線以下關閉該項 2.右方加入一區，往右拖關閉該項)
 
-        </style>
-        
-
-
-    </head>
-
-    <body>
-        <button id="plus" onclick="
-            getData();
-        ">get</button>
-        
-
-        <p class="ans">window.Telegram.WebApp.initData</p>
-        <br/>
-        <p class="ans2">decodeURIComponent(window.Telegram.WebApp.initData)</p>
-        <br/>
-        <p class="ans3">window.Telegram.WebApp.initDataUnsafe</p>
-
-
-    </body>
-
-    <script>
-        window.Telegram.WebApp.ready();
-        window.Telegram.WebApp.expand();
-
-        function getData(){
-            var objString = JSON.stringify(window.Telegram.WebApp.initDataUnsafe, null, 2); // 第三個參數2是為了美觀格式化
-
-            document.querySelector(".ans").innerHTML = window.Telegram.WebApp.initData;
-            document.querySelector(".ans2").innerHTML = decodeURIComponent(window.Telegram.WebApp.initData);
-            document.querySelector(".ans3").innerHTML = objString;
-
+     -->
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width">
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <title>PTT篩選條件設定</title>
+    <style>
+        /* box-sizing:border-box */
+        /* *{
+            border: solid blue 1px; 
+        } */
+        .loader {
+            display: none;
+            border: 1rem solid #f3f3f3; /* Light grey */
+            border-top: 1rem solid #3498db; /* Blue */
+            border-radius: 50%;
+            animation: spin 2s linear infinite;
+            
+            flex: 0 0 auto;
+            width: 20vmin;
+            height: 20vmin;
+            /* width: 50px;
+            height: 50px; */
         }
 
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .rootDiv {
+            width: 34rem;
+            height: 22rem;
+            display: flex;
+            justify-content: center;
+            /* align-items: center; */
+            margin: auto;
+            /* position:relative; */
+        }
+        .list {
+            margin: 0;
+            padding: 0;
+            list-style-type: none;
+        }
+        .list-name {
+            width: 12rem;
+            /* background-color: #f0f0f0; */
+            background-color: white;
+            
+        }
+        .list-data {
+            width: 22rem;
+            background-color: white;
+            /* min-height: 300px; */
+            
+        }
+        .list-item {
+            height: 1rem;
+            padding: 8px;
+            border: 1px solid #ddd;
+            cursor: pointer;
+            background-color: white;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+        .list-item.emptyItem::before {
+            content: '';           /* 建立一個偽元素來佔位 */
+            
+        }
+        .list-item.liBoardName{
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        /*框線*/
+        .list-item.liBoardName:not(:last-of-type) {
+            border-bottom: none;
+        }
+        .list-item.liBoardName:last-of-type {
+            border-bottom: 1px solid #ddd;
+        }
+        .list-item.filterList:not(:last-of-type) {
+            border-bottom: none;
+        }
+        .list-item.filterList:last-of-type {
+            border-bottom: 1px solid #ddd;
+        }
+
+        /* .list-item:not(:last-child) {
+            border-bottom: none;
+        }
+        .list-item:last-child {
+            border-bottom: 1px solid #ddd;
+        } */
+
+        .list-item.selected {
+            /* background-color: hsla(0, 100%, 50%, 0.445); */
+            /* border: 5px solid #eb0606 !important; */
+            background-color: #fff3e0; /* 浅橙色背景 */
+            border: 2px solid #ff9800 !important; /* 深橙色边框 */
+            font-weight: bold;
+            
+        }
+        .setting-block {
+            background-color: #e7f4fd;
+            height: 10rem;
+            /* margin: 0; */
+            padding: 0.1rem;
+            border: 2px solid #ff9800;
+            border-top: none;
+            /* display: flex;
+            flex-direction: column; */
+        }
+        .instruction {
+            margin-left: 1rem;
+            margin-top: 0.7rem;
+            margin-bottom: 0.7rem;
+            
+        }
+        .inputArea{
+            width: 13rem;
+            height: 1.5rem;
+            display: flex;
+        }
+        .list-item .buttonArea{
+            display: flex;
+            /* align-items: center; */
+            justify-content: center;
+            gap: 10px;  /* 按鈕之間的間距 */
+        }
+        .editBtn{
+            height: 1.5rem;
+            /* margin-left: auto; */
+        }
+        .delBtn{
+            height: 1.5rem;
+            /* margin-left: auto; */
+        }
+        .cludeBtn{
+            height: 2rem;
+            /* align-items: center; */
+
+        }
+        .reClrButtonDiv{
+            margin-left: 0.5rem;
+            display : inline-flex;
+            justify-content: center;
+            gap: 10px;
+        }
+        .clearBtn{
+            height: 2rem;
+        }
+        .retrieveBtn{
+            height: 2rem;
+        }
+
+        .buttonContainer{
+            width: 16rem;
+            height: 4rem;
+            display : flex;
+            flex-wrap : wrap;
+            justify-content : space-evenly;
+            align-items: center;
+            
+        }
+        .finishBtn{
+            height: 2rem;
+        }
+        .list-item.addNewLi{
+            font-size: small;
+            justify-content: center; /*.list-item的display已設為flex，故水平置中需用ustify-content*/
+            
+        }
+
+        /*須用.list-item.lastLi不然會被上面的.list-item:not(:last-child)蓋掉*/
+        /* .list-item.lastLi{  
+            
+            border-bottom: 1px solid #ddd;
+        } */
+
+        /* display: inline; */
+        /* float: right; */
+        .switch {
+            position: relative;
+            display: inline-block;
+            width: 2.625rem; /* 70% of 3.75rem */
+            height: 1.4875rem; /* 70% of 2.125rem */
+        }
+
+        .switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 1.4875rem; /* 70% of 2.125rem */
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 1.1375rem; /* 70% of 1.625rem */
+            width: 1.1375rem; /* 70% of 1.625rem */
+            left: 0.175rem; /* 70% of 0.25rem */
+            bottom: 0.175rem; /* 70% of 0.25rem */
+            background-color: white;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2196F3;
+        }
+
+        input:checked + .slider:before {
+            transform: translateX(1.1375rem); /* 70% of 1.625rem */
+        }
+
+        /* .slider:hover {
+        background-color: #7dbef1;
+        } */
+
+        .slider.round {
+            border-radius: 1.4875rem; /* 70% of 2.125rem */
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+        .LSdiv{
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }        
+    </style>
+</head>
+<body>
+<div class="LSdiv">
+    <button id = "loadBtn" class="loadBtn" onclick="
+        loadConfig();
+        ">載入設定</button>
+    <button id = "saveBtn" class="saveBtn" disabled>儲存設定</button>
+</div>
+<div id="rootDiv" class="rootDiv">
+    <div id="loader" class="loader"></div>
+
+    <!-- 下面兩個ul改成loadConfig() > callGasFunction("readConfig") 取得response後生成 -->
+    <!-- <ul class="list list-name" id="boardList">
+
+    </ul>
+    <ul class="list list-data" id="filterConfigList">
+
+    </ul> -->
+</div>
+
+<!-- <div>
+    <p style="margin-top: 0.3rem; margin-bottom: 0.3rem;">test</p>
+    <input value="456" style="display: block;">
+    <button >包含</button>
+    <button >排除</button>
+    <button style="display: block;">完成</button>
+</div> -->
+<script>
+    /*main*/
+    window.Telegram.WebApp.ready();
+    window.Telegram.WebApp.expand();
+    var initDataStr = window.Telegram.WebApp.initData;
+  
 
 
-    </script>
+
+    function updateFilterConfig(index) {
+        // 為左側列表添加列表項目
+        
+        var boardList = document.getElementById('boardList');
+        boardList.innerHTML = '';
+        g_data.board.forEach(function(name, eindex) {
+            var li = document.createElement('li');
+            li.className = 'list-item liBoardName';
+            li.textContent = name;
+            li.addEventListener('click', function() {
+                // console.log("li_Function");
+                // console.log(this.classList);
+                // if(this.classList.contains("liBoardName") == false){
+                    updateFilterConfig(eindex);
+                // }
+                
+            });
 
 
+            var label = document.createElement("label");
+            label.className = "switch";
+            label.addEventListener("click", function(event) {
+                // event.preventDefault();
+                event.stopPropagation();
+            });
+
+            // 建立input元素，設定type為checkbox
+            var input = document.createElement("input");
+            input.type = "checkbox";
+            input.setAttribute("boardIndex", eindex);
+            if(g_data.boardSwitch[eindex] == 1){
+                input.checked = true;
+            }
+            input.addEventListener('click', function() {
+                //***若要有動畫可試著取消點擊li內的label時的點擊事件function***
+                //***若要有動畫可試著取消點擊li第一次的點擊事件function***
+                var thisBoardIndex = this.getAttribute("boardIndex");
+                if(g_data.boardSwitch[thisBoardIndex] == 0){
+                    g_data.boardSwitch[thisBoardIndex] = 1;
+                }else{
+                    g_data.boardSwitch[thisBoardIndex] = 0;
+                }
+                
+                // console.log("checkbox_Function");
+            });
+
+            // 建立span元素並新增class
+            var span = document.createElement("span");
+            span.className = "slider round";
+
+            // 組裝label元素
+            label.appendChild(input);
+            label.appendChild(span);
+
+
+            // li.appendChild(switchBtn);
+            li.appendChild(label);
+            boardList.appendChild(li);
+            
+        });
+
+        // 獲取右側列表元素的引用
+        var filterConfigList = document.getElementById('filterConfigList');
+        filterConfigList.innerHTML = ''; // 清空前一個項目的數據
+        filterConfigList.setAttribute("boardIndex",index);
+
+        // 檢查 g_data.filterConfig[index] 是否為一個數組
+        if(Array.isArray(g_data.filterConfig[index])) {
+            // 如果是一個數組，則添加到列表中
+            var filterItems = g_data.filterConfig[index];
+            filterItems.forEach(function(item,itemIndex) {
+                if(Array.isArray(item)) { // 如果item是陣列
+                    item = item.join(', '); // 將 item 陣列轉為字串
+                }
+                var li = document.createElement('li');
+                var div = document.createElement('div');
+                div.className = "setting-block";
+                // div.style.display = "inline-block";    //測試時先打開
+                div.style.display = "none";
+                // div.innerText = "test\n";
+                
+                var p = document.createElement('p');
+                p.className = "instruction";
+                p.innerText = "點選「包含」或「排除」後輸入關鍵字\n　Ex1：⊕情報　　Ex2：⊕交易⊝點數"
+
+                var inputArea = document.createElement('input');
+                inputArea.className = "inputArea";
+                inputArea.value = item;
+                inputArea.style = "display: inline-block;";
+
+                var reClrButtonDiv = document.createElement('div');
+                reClrButtonDiv.className = "reClrButtonDiv";
+
+
+                var clearBtn = document.createElement('button');
+                clearBtn.className = "clearBtn";
+                clearBtn.innerText = "清空";
+                clearBtn.style = "display: inline-block;";
+                clearBtn.addEventListener('click', function(){
+                    var thisInput = this.parentElement.previousElementSibling
+                    thisInput.value = "";
+                    // thisInput.focus();   //清空不focus應較符合使用者需求
+                });
+                var retrieveBtn = document.createElement('button');
+                retrieveBtn.className = "retrieveBtn";
+                retrieveBtn.innerText = "還原";
+                retrieveBtn.style = "display: inline-block;";
+                retrieveBtn.addEventListener('click', function(){
+
+                    var thisLi = this.parentElement.parentElement.previousElementSibling;
+                    
+                    var thisInput = this.parentElement.previousElementSibling;
+
+                    thisInput.value = g_data.filterConfig[thisLi.getAttribute("boardIndex")][thisLi.getAttribute("listIndex")];
+                    // thisInput.focus();   //還原不focus應較符合使用者需求
+                });
+
+                var finishBtn = document.createElement('button');
+                finishBtn.className = "finishBtn";
+                finishBtn.innerText = "確認修改";
+                // finishBtn.style = "display: block;";
+                finishBtn.addEventListener('click', function(){
+                    var thisLi = this.parentElement.parentElement.previousElementSibling;
+                    var thisInput = this.parentElement.previousElementSibling.previousElementSibling;
+                    
+                    // thisLi.textContent = thisInput.value;
+                    g_data.filterConfig[thisLi.getAttribute("boardIndex")][thisLi.getAttribute("listIndex")] = thisInput.value;
+                    updateFilterConfig(thisLi.getAttribute("boardIndex"));
+                });
+                
+                
+
+
+                var includeBtn = document.createElement('button');
+                var excludeBtn = document.createElement('button');
+                includeBtn.className = "cludeBtn";
+                excludeBtn.className = "cludeBtn";
+                includeBtn.innerText = "包含(⊕)";
+                includeBtn.style = "display: inline-block;";
+                includeBtn.addEventListener('click', function(){
+                    var thisInput = this.parentElement.previousElementSibling.previousElementSibling;
+                    thisInput.value += "⊕";
+                    thisInput.focus();
+                });
+                excludeBtn.innerText = "排除(⊝)";
+                excludeBtn.style = "display: inline-block;";
+                excludeBtn.addEventListener('click', function(){
+                    var thisInput = this.parentElement.previousElementSibling.previousElementSibling;
+                    thisInput.value += "⊝";
+                    thisInput.focus();
+                });
+
+                var buttonContainer = document.createElement('div');
+                buttonContainer.className = "buttonContainer";
+                
+                
+                // 将按钮添加到新的容器中
+                buttonContainer.appendChild(includeBtn);
+                buttonContainer.appendChild(excludeBtn);
+                buttonContainer.appendChild(finishBtn);
+
+
+
+                div.appendChild(p);
+                
+                div.appendChild(inputArea);
+                reClrButtonDiv.appendChild(clearBtn);
+                reClrButtonDiv.appendChild(retrieveBtn);
+                div.appendChild(reClrButtonDiv);             
+                div.appendChild(buttonContainer);
+                // div.appendChild(includeBtn);
+                // div.appendChild(excludeBtn);
+                // div.appendChild(finishBtn);
+
+                
+                var editBtn = document.createElement('button');
+                var delBtn = document.createElement('button');
+                editBtn.className = "editBtn";
+                delBtn.className = "delBtn";
+                editBtn.innerText = "編輯";
+                delBtn.innerText = "刪除";
+                editBtn.style = "display: inline; float: right;";
+                delBtn.style = "display: inline; float: right;";
+                editBtn.addEventListener('click', function() {
+                    var thisSettingDiv = this.parentElement.parentElement.nextElementSibling
+
+                    //重設全部li的class並將選中的li加入selected以便套用CSS
+                    var thisLi = this.parentElement.parentElement;
+                    var allLi = document.getElementsByClassName("list-item filterList");
+                    for(ol of allLi){
+                        ol.classList.remove("selected");
+                    }
+                    
+
+                    if (thisSettingDiv.style.display !== "none") {   //若點擊同一個編輯鍵，為關閉該項編輯框
+
+                        thisSettingDiv.classList.remove("selected");
+                        thisSettingDiv.style.display = "none";
+                    } else {    //若點擊其它編輯鍵，須先關閉其它編輯框再開起該項編輯框
+                        var otherSettingBlock = document.getElementsByClassName("setting-block");
+                        for(ot of otherSettingBlock){
+                            ot.classList.remove("selected");
+                            ot.style.display = "none";
+                        }
+
+                        thisSettingDiv.classList.add("selected");
+                        thisSettingDiv.style.display = "block";
+
+
+                        thisLi.classList.add("selected");    //選擇該li
+                    }
+                    
+
+                });
+                delBtn.addEventListener('click', function(){
+                    var thisLi = this.parentElement.parentElement;
+                    filterConfigList.removeChild(thisLi);
+                    g_data.filterConfig[thisLi.getAttribute("boardIndex")].splice(thisLi.getAttribute("listIndex"),1);
+                    
+                    updateFilterConfig(thisLi.getAttribute("boardIndex"));
+                    
+                });
+
+                
+                li.className = "list-item filterList";
+                li.classList.remove("lastLi");  //生成時一律移除lastLi標籤，待後續生成新增按鈕時再對最末筆加入lastLi
+                if(item == ""){
+                    li.classList.add("emptyItem");
+                }
+                li.setAttribute("boardIndex", index);
+                li.setAttribute("listIndex", itemIndex);
+                li.innerText = item;
+                
+                // li.style = "display: inline;";
+
+                var buttonArea = document.createElement("div");
+                buttonArea.className = "buttonArea";
+                buttonArea.appendChild(editBtn);
+                buttonArea.appendChild(delBtn);
+                li.appendChild(buttonArea);
+                
+                // li.appendChild(delBtn);
+                // li.appendChild(editBtn);
+                
+                filterConfigList.appendChild(li);
+                filterConfigList.appendChild(div);
+                
+                
+            });
+
+
+            if(g_data.filterConfig[index].length != 0){   //若filterList內有東西將其最後一筆加入lastLi標籤
+                var thisLastLiIndex = g_data.filterConfig[index].length - 1;
+                var nowLiDiv = document.getElementById("filterConfigList").children;
+                var lastLi = nowLiDiv[nowLiDiv.length - 2];
+                lastLi.classList.add("lastLi");
+            }
+            
+
+            //按新增按鈕後直接對g_data內插一個空陣列再更新頁面
+            //單個看板篩選條件上限10筆
+            
+            if((g_data.filterConfig[index].length < 10) 
+                &&  (g_data.filterConfig[index][g_data.filterConfig[index].length-1] != "")){   //新增按鈕出現的條件：1.筆數小於上限 2.最後一筆不會emptyItem
+                var addNewLi = document.createElement('li');
+                
+                // var lastDiv = document.createElement('div');
+                addNewLi.className = "list-item addNewLi"; 
+                addNewLi.innerText = "新增篩選條件";
+                addNewLi.addEventListener('click', function(){
+                    var allSettingBlock;
+                    var thisBoardIndex = this.parentElement.getAttribute("boardIndex");
+                    g_data.filterConfig[thisBoardIndex].push([""]);
+                    updateFilterConfig(thisBoardIndex);
+
+                    
+                    
+                    
+                    
+                    //若點擊其它編輯鍵，須先關閉其它編輯框再開起該項編輯框
+                    
+                    allSettingBlock = document.getElementsByClassName("setting-block");
+                    
+                    let countI = 0;
+                    for(blk of allSettingBlock){
+                        if(countI == allSettingBlock.length - 1){   //用g_data.filterConfig[thisBoardIndex].length - 1也可
+                            blk.className = "setting-block selected";
+                            blk.style.display = "block";
+                            blk.previousElementSibling.classList.add("selected");
+                        }else{  //非最後一筆
+                            blk.className = "setting-block";
+                            blk.style.display = "none";
+                            blk.previousElementSibling.classList.remove("selected");    //前元素為li，清除其selected
+                            
+                        }
+                        countI += 1;
+                    }
+                    
+                    
+
+
+                });
+                filterConfigList.appendChild(addNewLi);
+                
+            }else{  //將最後一筆li的className加入"lastLi"
+                // var thisLastLiIndex = g_data.filterConfig[index].length - 1;
+                // var nowLiDiv = document.getElementById("filterConfigList").children;
+                // var lastLi = nowLiDiv[nowLiDiv.length - 2];
+                // lastLi.classList.add("lastLi");
+            }
+                        
+        }
+
+        // 重設左側列表的選擇狀態
+        // var nameItems = document.querySelectorAll('.list-name .list-item');
+        // nameItems.forEach(function(elem) {
+        //     elem.classList.remove('selected');
+        // });
+        // nameItems[index].classList.add('selected');
+        
+        
+
+
+    }
+
+    // g_data物件結構給定的參數
+    var g_data = {
+        "board": ["e-coupon", "Lifeismoney","tt"],
+        "filterConfig": [
+            ["⊝徵求", "⊝點數",""],
+            ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
+            ["0","3"]
+        ],
+        "boardSwitch":[1,0,1]
+    };
+    // console.log(JSON.stringify(g_data));
+    // console.log(JSON.parse(JSON.stringify(g_data)));
+    // updateFilterConfig(0);
+
+    function loadConfig(){
+
+        document.getElementById("rootDiv").style.alignItems = "center"; //將loader垂直置中
+        document.getElementById("loader").style.display = "block";
+
+        document.getElementById("loadBtn").disabled = true;
+        callGasFunction("readConfig");  //讀取設定後存到全域變數g_data
+
+    }
+
+    /*
+        readConfig：讀取設定後存到全域變數g_data
+    
+    */
+    function callGasFunction(functionName,value1 = '1',value2 = '2') {
+            var url = "https://script.google.com/macros/s/AKfycbyPSBZlgKGlVLuEHSEG1BE6xXqZxfrWHK73iLcJvwWRBBG9Q0wuLZDemMKUTOIRj3iC/exec";
+            var data = {
+                "verify": initDataStr,
+                "methodCall": functionName,
+                "param1": value1,
+                "param2": value2
+            };
+            // console.log(JSON.stringify(data));
+            fetch(url, {
+                method: 'POST', 
+                cache: 'no-cache',
+                headers: {
+                    'Content-Type': 'text/plain'
+                },
+                redirect: 'follow',
+                body: JSON.stringify(data) // 序列化data對象為JSON字符串
+            })
+            .then(response => response.json()) // 解析JSON格式的響應
+            .then((response) => {
+                // document.getElementById('output').textContent = '成功回傳: ' + JSON.stringify(response);
+
+                //新增ul「boardList」和「filterConfigList」並將對齊改成預設(stretch)
+                var ulBoardName = document.createElement("ul");
+                ulBoardName.className = "list list-name";
+                ulBoardName.id = "boardList";
+                var ulFilterList = document.createElement("ul");
+                ulFilterList.className = "list list-data";
+                ulFilterList.id = "filterConfigList";
+
+                document.getElementById("rootDiv").appendChild(ulBoardName);
+                document.getElementById("rootDiv").appendChild(ulFilterList);
+                document.getElementById("rootDiv").style.alignItems = "stretch";
+                document.getElementById("loader").style.display = "none";
+
+                g_data = response
+                updateFilterConfig(0);
+                document.getElementById("saveBtn").disabled = false;
+                return JSON.stringify(response);
+            })
+            .catch((error) => {
+                // document.getElementById('output').textContent = '錯誤: ' + error;
+                alert(error);
+                return 'error';
+            });
+        }
+    
+</script>
+
+</body>
 </html>
-

@@ -4,13 +4,22 @@
     <!-- 
         後續目標：
             個別關鍵字關開，呈現以switch或拖曳(1.最下方加入分隔線，拖拉至分隔線以下關閉該項 2.右方加入一區，往右拖關閉該項)
-
+            (Done)li內innerText替換成input，下方input刪除
      -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <title>PTT篩選條件設定</title>
     <style>
+        /* box-sizing:border-box */
+        /* *{
+            border: solid blue 1px; 
+        } */
+        .LSdiv{ /*載入設定、儲存設定按鈕區域*/
+            text-align: center;
+            margin-top: 0.5rem;
+            margin-bottom: 1.5rem;
+        }      
         .loader {
             display: none;
             border: 1rem solid #f3f3f3; /* Light grey */
@@ -43,13 +52,13 @@
             padding: 0;
             list-style-type: none;
         }
-        .list-name {
+        .ulBoard {
             width: 10rem;
             /* background-color: #f0f0f0; */
             background-color: white;
             
         }
-        .list-data {
+        .ulFilter {
             width: 18rem;
             background-color: white;
             /* min-height: 300px; */
@@ -64,15 +73,54 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            /* white-space: nowrap;
+            overflow: hidden;
+            text-overflow: ellipsis; */
         }
         .list-item.emptyItem::before {
             content: '';           /* 建立一個偽元素來佔位 */
             
         }
+        .list-item.selected {
+            /* background-color: hsla(0, 100%, 50%, 0.445); */
+            /* border: 5px solid #eb0606 !important; */
+            background-color: #fff3e0; /* 浅橙色背景 */
+            border: 2px solid #ff9800 !important; /* 深橙色边框 */
+            font-weight: bold;
+            
+        }
+        /*liBoardName*/
         .list-item.liBoardName{
             display: flex;
             align-items: center;
             justify-content: space-between;
+        }
+        /*filterList*/
+        .list-item.filterList{
+            overflow: hidden;
+            /* white-space: nowrap; */
+            /* padding-right: 3rem; */
+            /* width: 12rem; */
+        }
+        /*篩選字input*/
+        .filterTextInput{
+            width: 10rem;
+        }
+        .list-item .liEditDelBtnDiv{
+            display: flex;
+            /* align-items: center; */
+            justify-content: center;
+            gap: 10px;  /* 按鈕之間的間距 */
+            margin-left: auto; 
+            flex-shrink: 0;
+        }
+        .editBtn{
+            height: 1.5rem;
+            /* margin-left: auto; */
+        }
+        .delBtn{
+            height: 1.5rem;
+            /* margin-left: auto; */
         }
 
         /*框線*/
@@ -88,7 +136,6 @@
         .list-item.filterList:last-of-type {
             border-bottom: 1px solid #ddd;
         }
-
         /* .list-item:not(:last-child) {
             border-bottom: none;
         }
@@ -96,17 +143,10 @@
             border-bottom: 1px solid #ddd;
         } */
 
-        .list-item.selected {
-            /* background-color: hsla(0, 100%, 50%, 0.445); */
-            /* border: 5px solid #eb0606 !important; */
-            background-color: #fff3e0; /* 浅橙色背景 */
-            border: 2px solid #ff9800 !important; /* 深橙色边框 */
-            font-weight: bold;
-            
-        }
-        .setting-block {
+        
+        .settingBlockDiv {
             background-color: #e7f4fd;
-            height: 10rem;
+            /* height: 10rem; */
             /* margin: 0; */
             padding: 0.1rem;
             border: 2px solid #ff9800;
@@ -114,66 +154,55 @@
             /* display: flex;
             flex-direction: column; */
         }
-        .instruction {
+        .instructionTextP {
             font-size: smaller;
-            margin-left: 0.2rem;
+            /* margin-left: 0.2rem; */
+            margin: 0.5rem;
             /* margin-top: 0.7rem;
             margin-bottom: 0.7rem; */
             
         }
-        .inputArea{
-            width: 8rem;
+        .editTextSampleInput{
+            /* width: 8rem; */
             height: 1.5rem;
             display: flex;
         }
-        .list-item .buttonArea{
-            display: flex;
-            /* align-items: center; */
-            justify-content: center;
-            gap: 10px;  /* 按鈕之間的間距 */
+
+        .reClrBtnDiv{
+            /* margin-left: 1rem; */
+            margin-top: 0.5rem;
+            display : flex;
+            /* justify-content: center; */
+            justify-content : space-evenly;
+            align-items: center;
+            /* gap: 2rem; */
         }
-        .editBtn{
-            height: 1.5rem;
-            /* margin-left: auto; */
+        .clearBtn{
+            height: 1.8rem;
         }
-        .delBtn{
-            height: 1.5rem;
-            /* margin-left: auto; */
+        .retrieveBtn{
+            height: 1.8rem;
+        }
+
+        .cludeFinishBtnDiv{
+            /* width: 16rem; */
+            height: 4rem;
+            display : flex;
+            /* flex-wrap : wrap; */
+            justify-content : space-evenly;
+            align-items: center;
         }
         .cludeBtn{
             height: 2rem;
             /* align-items: center; */
-
-        }
-        .reClrButtonDiv{
-            margin-left: 0.5rem;
-            display : inline-flex;
-            justify-content: center;
-            gap: 10px;
-        }
-        .clearBtn{
-            height: 2rem;
-        }
-        .retrieveBtn{
-            height: 2rem;
-        }
-
-        .buttonContainer{
-            width: 16rem;
-            height: 4rem;
-            display : flex;
-            flex-wrap : wrap;
-            justify-content : space-evenly;
-            align-items: center;
-            
         }
         .finishBtn{
             height: 2rem;
         }
+
         .list-item.addNewLi{
             font-size: small;
             justify-content: center; /*.list-item的display已設為flex，故水平置中需用ustify-content*/
-            
         }
 
         /*須用.list-item.lastLi不然會被上面的.list-item:not(:last-child)蓋掉*/
@@ -182,21 +211,17 @@
             border-bottom: 1px solid #ddd;
         } */
 
-        /* display: inline; */
-        /* float: right; */
         .switch {
             position: relative;
             display: inline-block;
             width: 2.625rem; /* 70% of 3.75rem */
             height: 1.4875rem; /* 70% of 2.125rem */
         }
-
         .switch input {
             opacity: 0;
             width: 0;
             height: 0;
         }
-
         .slider {
             position: absolute;
             cursor: pointer;
@@ -208,7 +233,6 @@
             transition: .4s;
             border-radius: 1.4875rem; /* 70% of 2.125rem */
         }
-
         .slider:before {
             position: absolute;
             content: "";
@@ -220,31 +244,22 @@
             transition: .4s;
             border-radius: 50%;
         }
-
         input:checked + .slider {
             background-color: #2196F3;
         }
-
         input:checked + .slider:before {
             transform: translateX(1.1375rem); /* 70% of 1.625rem */
         }
-
         /* .slider:hover {
         background-color: #7dbef1;
         } */
-
         .slider.round {
             border-radius: 1.4875rem; /* 70% of 2.125rem */
         }
-
         .slider.round:before {
             border-radius: 50%;
         }
-        .LSdiv{
-            text-align: center;
-            margin-top: 0.5rem;
-            margin-bottom: 1.5rem;
-        }        
+
     </style>
 </head>
 <body>
@@ -258,10 +273,10 @@
     <div id="loader" class="loader"></div>
 
     <!-- 下面兩個ul改成loadConfig() > callGasFunction("readConfig") 取得response後生成 -->
-    <!-- <ul class="list list-name" id="boardList">
+    <!-- <ul class="list ulBoard" id="boardList">
 
     </ul>
-    <ul class="list list-data" id="filterConfigList">
+    <ul class="list ulFilter" id="filterConfigList">
 
     </ul> -->
 </div>
@@ -277,8 +292,8 @@
     /*main*/
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
-    var initDataStr = window.Telegram.WebApp.initData;
-  
+    // var initDataStr = window.Telegram.WebApp.initData;
+
 
 
 
@@ -356,46 +371,45 @@
                 if(Array.isArray(item)) { // 如果item是陣列
                     item = item.join(', '); // 將 item 陣列轉為字串
                 }
-                var li = document.createElement('li');
-                var div = document.createElement('div');
-                div.className = "setting-block";
+                var filterListLi = document.createElement('li');
+                var settingBlockDiv = document.createElement('div');
+                settingBlockDiv.className = "settingBlockDiv";
                 // div.style.display = "inline-block";    //測試時先打開
-                div.style.display = "none";
-                // div.innerText = "test\n";
+                settingBlockDiv.style.display = "none";
+
                 
                 var p = document.createElement('p');
-                p.className = "instruction";
+                p.className = "instructionTextP";
                 p.innerText = "點選「包含」或「排除」後輸入關鍵字\n　Ex1：⊕情報　　Ex2：⊕交易⊝點數"
 
-                var inputArea = document.createElement('input');
-                inputArea.className = "inputArea";
-                inputArea.value = item;
-                inputArea.style = "display: inline-block;";
+                var editTextSampleInput = document.createElement('input');
+                editTextSampleInput.className = "editTextSampleInput";
+                editTextSampleInput.value = item;
+                editTextSampleInput.style = "display: inline-block;";
 
-                var reClrButtonDiv = document.createElement('div');
-                reClrButtonDiv.className = "reClrButtonDiv";
+                var reClrBtnDiv = document.createElement('div');
+                reClrBtnDiv.className = "reClrBtnDiv";
 
 
                 var clearBtn = document.createElement('button');
                 clearBtn.className = "clearBtn";
-                clearBtn.innerText = "清空";
+                clearBtn.innerText = "清空欄位資料";
                 clearBtn.style = "display: inline-block;";
                 clearBtn.addEventListener('click', function(){
-                    var thisInput = this.parentElement.previousElementSibling
-                    thisInput.value = "";
+                    var thisIndex = this.getAttribute("listIndex");
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
+                    thisFilterTextInput.value = "";
                     // thisInput.focus();   //清空不focus應較符合使用者需求
                 });
                 var retrieveBtn = document.createElement('button');
                 retrieveBtn.className = "retrieveBtn";
-                retrieveBtn.innerText = "還原";
+                retrieveBtn.innerText = "還原欄位資料";
                 retrieveBtn.style = "display: inline-block;";
                 retrieveBtn.addEventListener('click', function(){
+                    var thisIndex = this.getAttribute("listIndex");
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
 
-                    var thisLi = this.parentElement.parentElement.previousElementSibling;
-                    
-                    var thisInput = this.parentElement.previousElementSibling;
-
-                    thisInput.value = g_data.filterConfig[thisLi.getAttribute("boardIndex")][thisLi.getAttribute("listIndex")];
+                    thisFilterTextInput.value = g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")];
                     // thisInput.focus();   //還原不focus應較符合使用者需求
                 });
 
@@ -404,12 +418,13 @@
                 finishBtn.innerText = "確認修改";
                 // finishBtn.style = "display: block;";
                 finishBtn.addEventListener('click', function(){
-                    var thisLi = this.parentElement.parentElement.previousElementSibling;
-                    var thisInput = this.parentElement.previousElementSibling.previousElementSibling;
+                    var thisIndex = this.getAttribute("listIndex");
+                    // var thisLi = this.parentElement.parentElement.previousElementSibling;
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
                     
                     // thisLi.textContent = thisInput.value;
-                    g_data.filterConfig[thisLi.getAttribute("boardIndex")][thisLi.getAttribute("listIndex")] = thisInput.value;
-                    updateFilterConfig(thisLi.getAttribute("boardIndex"));
+                    g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")] = thisFilterTextInput.value;
+                    updateFilterConfig(this.getAttribute("boardIndex"));
                 });
                 
                 
@@ -422,36 +437,55 @@
                 includeBtn.innerText = "包含(⊕)";
                 includeBtn.style = "display: inline-block;";
                 includeBtn.addEventListener('click', function(){
-                    var thisInput = this.parentElement.previousElementSibling.previousElementSibling;
-                    thisInput.value += "⊕";
-                    thisInput.focus();
+                    var thisIndex = this.getAttribute("listIndex");
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
+
+                    thisFilterTextInput.value += "⊕";
+                    thisFilterTextInput.focus();
                 });
                 excludeBtn.innerText = "排除(⊝)";
                 excludeBtn.style = "display: inline-block;";
                 excludeBtn.addEventListener('click', function(){
-                    var thisInput = this.parentElement.previousElementSibling.previousElementSibling;
-                    thisInput.value += "⊝";
-                    thisInput.focus();
+                    var thisIndex = this.getAttribute("listIndex");
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
+
+                    thisFilterTextInput.value += "⊝";
+                    thisFilterTextInput.focus();
                 });
 
-                var buttonContainer = document.createElement('div');
-                buttonContainer.className = "buttonContainer";
+                var cludeFinishBtnDiv = document.createElement('div');
+                cludeFinishBtnDiv.className = "cludeFinishBtnDiv";
                 
                 
                 // 将按钮添加到新的容器中
-                buttonContainer.appendChild(includeBtn);
-                buttonContainer.appendChild(excludeBtn);
-                buttonContainer.appendChild(finishBtn);
+                // includeBtn.setAttribute("boardIndex", index);
+                // includeBtn.setAttribute("listIndex", itemIndex);
+                // excludeBtn.setAttribute("boardIndex", index);
+                // excludeBtn.setAttribute("listIndex", itemIndex);
+                // finishBtn.setAttribute("boardIndex", index);
+                // finishBtn.setAttribute("listIndex", itemIndex);
+                cludeFinishBtnDiv.appendChild(includeBtn);
+                cludeFinishBtnDiv.appendChild(excludeBtn);
+                cludeFinishBtnDiv.appendChild(finishBtn);
 
 
 
-                div.appendChild(p);
                 
-                div.appendChild(inputArea);
-                reClrButtonDiv.appendChild(clearBtn);
-                reClrButtonDiv.appendChild(retrieveBtn);
-                div.appendChild(reClrButtonDiv);             
-                div.appendChild(buttonContainer);
+                
+                // settingBlockDiv.appendChild(editTextSampleInput);
+
+                // clearBtn.setAttribute("boardIndex", index);
+                // clearBtn.setAttribute("listIndex", itemIndex);
+                // retrieveBtn.setAttribute("boardIndex", index);
+                // retrieveBtn.setAttribute("listIndex", itemIndex);
+
+                reClrBtnDiv.appendChild(clearBtn);
+                reClrBtnDiv.appendChild(retrieveBtn);
+                settingBlockDiv.appendChild(reClrBtnDiv);
+
+                settingBlockDiv.appendChild(p);
+                
+                settingBlockDiv.appendChild(cludeFinishBtnDiv);
                 // div.appendChild(includeBtn);
                 // div.appendChild(excludeBtn);
                 // div.appendChild(finishBtn);
@@ -466,38 +500,61 @@
                 editBtn.style = "display: inline; float: right;";
                 delBtn.style = "display: inline; float: right;";
                 editBtn.addEventListener('click', function() {
-                    var thisSettingDiv = this.parentElement.parentElement.nextElementSibling
-
-                    //重設全部li的class並將選中的li加入selected以便套用CSS
-                    var thisLi = this.parentElement.parentElement;
-                    var allLi = document.getElementsByClassName("list-item filterList");
-                    for(ol of allLi){
-                        ol.classList.remove("selected");
-                    }
+                    var thisIndex = this.getAttribute("listIndex");
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
+                    var thisLi = thisFilterTextInput.parentElement;
+                    var thisSettingDiv = thisLi.nextElementSibling
                     
 
-                    if (thisSettingDiv.style.display !== "none") {   //若點擊同一個編輯鍵，為關閉該項編輯框
+                    if (thisSettingDiv.style.display !== "none") {   //若點擊同一個編輯鍵，為關閉該項編輯框(div)
+                        thisLi.classList.remove("selected");
+
+                        thisFilterTextInput.disabled = true;
 
                         thisSettingDiv.classList.remove("selected");
                         thisSettingDiv.style.display = "none";
-                    } else {    //若點擊其它編輯鍵，須先關閉其它編輯框再開起該項編輯框
-                        var otherSettingBlock = document.getElementsByClassName("setting-block");
-                        for(ot of otherSettingBlock){
+
+                        //編輯完未確認修改點擊「同一個」編輯按鍵，還原filterTextInput設定值
+                        thisFilterTextInput.value = g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")];
+                    } else {    
+                        //重設全部li的class並將選中的li加入selected以便套用CSS
+                        var allLi = document.getElementsByClassName("list-item filterList");
+                        for(ol of allLi){
+                            ol.classList.remove("selected");
+
+                            //編輯完未確認修改點擊「不同」編輯按鍵，還原filterTextInput設定值(for of取消selected時順便)
+                            var thisIndexTemp = ol.getAttribute("listIndex");
+                            var thisFilterTextInputTemp = document.getElementById("filterWord" + String(thisIndexTemp).padStart(2, "0"));
+                            thisFilterTextInputTemp.value = g_data.filterConfig[ol.getAttribute("boardIndex")][ol.getAttribute("listIndex")];
+                        }
+                        thisLi.classList.add("selected");    //選擇該li
+
+                        //若點擊其它編輯鍵，須先disabled其它filterTextInput再開起該項filterTextInput
+                        var allFilterTextInput = document.getElementsByClassName("filterTextInput");
+                        for(fti of allFilterTextInput){
+                            fti.disabled = true;
+                        }
+                        thisFilterTextInput.disabled = false;
+
+                        //若點擊其它編輯鍵，須先關閉其它編輯框再開起該項編輯框
+                        var allSettingBlockDiv = document.getElementsByClassName("settingBlockDiv");
+                        for(ot of allSettingBlockDiv){
                             ot.classList.remove("selected");
                             ot.style.display = "none";
                         }
-
                         thisSettingDiv.classList.add("selected");
                         thisSettingDiv.style.display = "block";
 
-
-                        thisLi.classList.add("selected");    //選擇該li
                     }
+
                     
 
                 });
                 delBtn.addEventListener('click', function(){
-                    var thisLi = this.parentElement.parentElement;
+                    var thisIndex = this.getAttribute("listIndex");
+                    var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
+                    var thisLi = thisFilterTextInput.parentElement;
+                    // var thisLi = this.parentElement.parentElement;
                     filterConfigList.removeChild(thisLi);
                     g_data.filterConfig[thisLi.getAttribute("boardIndex")].splice(thisLi.getAttribute("listIndex"),1);
                     
@@ -506,28 +563,50 @@
                 });
 
                 
-                li.className = "list-item filterList";
-                li.classList.remove("lastLi");  //生成時一律移除lastLi標籤，待後續生成新增按鈕時再對最末筆加入lastLi
+                filterListLi.className = "list-item filterList";
+                filterListLi.classList.remove("lastLi");  //生成時一律移除lastLi標籤，待後續生成新增按鈕時再對最末筆加入lastLi
                 if(item == ""){
-                    li.classList.add("emptyItem");
+                    filterListLi.classList.add("emptyItem");
                 }
-                li.setAttribute("boardIndex", index);
-                li.setAttribute("listIndex", itemIndex);
-                li.innerText = item;
-                
-                // li.style = "display: inline;";
+                // filterListLi.setAttribute("boardIndex", index);
+                // filterListLi.setAttribute("listIndex", itemIndex);
 
-                var buttonArea = document.createElement("div");
-                buttonArea.className = "buttonArea";
-                buttonArea.appendChild(editBtn);
-                buttonArea.appendChild(delBtn);
-                li.appendChild(buttonArea);
+                // li.innerText = item;
+                
+                var filterTextInput = document.createElement("input");
+                // filterTextInput.setAttribute("boardIndex", index);
+                // filterTextInput.setAttribute("listIndex", itemIndex);
+                filterTextInput.id = "filterWord" + String(itemIndex).padStart(2, "0");
+                filterTextInput.classList.add("filterTextInput");
+                filterTextInput.value = item;
+                filterTextInput.disabled = true;
+
+                var liEditDelBtnDiv = document.createElement("div");
+                liEditDelBtnDiv.className = "liEditDelBtnDiv";
+
+                // editBtn.setAttribute("boardIndex", index);
+                // editBtn.setAttribute("listIndex", itemIndex);
+                // delBtn.setAttribute("boardIndex", index);
+                // delBtn.setAttribute("listIndex", itemIndex);
+
+                liEditDelBtnDiv.appendChild(editBtn);
+                liEditDelBtnDiv.appendChild(delBtn);
+                filterListLi.appendChild(filterTextInput);
+                filterListLi.appendChild(liEditDelBtnDiv);
                 
                 // li.appendChild(delBtn);
                 // li.appendChild(editBtn);
+
+                //為filterListLi和div所有子元素加入index
+                setAttributeForAllDescendants(filterListLi, index, itemIndex);
+                setAttributeForAllDescendants(settingBlockDiv, index, itemIndex);
+
+                filterConfigList.appendChild(filterListLi);
+                filterConfigList.appendChild(settingBlockDiv);
                 
-                filterConfigList.appendChild(li);
-                filterConfigList.appendChild(div);
+
+                
+                
                 
                 
             });
@@ -558,24 +637,24 @@
                     updateFilterConfig(thisBoardIndex);
 
                     
-                    
-                    
-                    
-                    //若點擊其它編輯鍵，須先關閉其它編輯框再開起該項編輯框
-                    
-                    allSettingBlock = document.getElementsByClassName("setting-block");
+                    //移除第1筆~(n-1)筆的settingBlockDiv 和li 的selected，將最後一筆加上selected
+                    //disabled第1筆~(n-1)筆的filterTextInput，將最後一筆加上enable
+                    allSettingBlock = document.getElementsByClassName("settingBlockDiv");
                     
                     let countI = 0;
                     for(blk of allSettingBlock){
                         if(countI == allSettingBlock.length - 1){   //用g_data.filterConfig[thisBoardIndex].length - 1也可
-                            blk.className = "setting-block selected";
+                            blk.classList.add("selected");
                             blk.style.display = "block";
                             blk.previousElementSibling.classList.add("selected");
+
+                            blk.previousElementSibling.firstElementChild.disabled = false;  //enable最後一筆的filterTextInput
                         }else{  //非最後一筆
-                            blk.className = "setting-block";
+                            blk.classList.remove("selected");
                             blk.style.display = "none";
                             blk.previousElementSibling.classList.remove("selected");    //前元素為li，清除其selected
-                            
+
+                            blk.previousElementSibling.firstElementChild.disabled = true;   //disabled非最後一筆的filterTextInput
                         }
                         countI += 1;
                     }
@@ -596,7 +675,7 @@
         }
 
         // 重設左側列表的選擇狀態
-        // var nameItems = document.querySelectorAll('.list-name .list-item');
+        // var nameItems = document.querySelectorAll('.ulBoard .list-item');
         // nameItems.forEach(function(elem) {
         //     elem.classList.remove('selected');
         // });
@@ -611,7 +690,7 @@
     var g_data = {
         "board": ["e-coupon", "Lifeismoney","tt"],
         "filterConfig": [
-            ["⊝徵求", "⊝點數",""],
+            ["徵求", "⊝湯姆貓",""],
             ["1", "2", "3", "4", "5", "6", "7", "8", "9"],
             ["0","3"]
         ],
@@ -619,8 +698,9 @@
     };
     // console.log(JSON.stringify(g_data));
     // console.log(JSON.parse(JSON.stringify(g_data)));
-    // updateFilterConfig(0);
 
+    
+    
     function loadConfig(){
 
         document.getElementById("rootDiv").style.alignItems = "center"; //將loader垂直置中
@@ -659,10 +739,10 @@
 
                 //新增ul「boardList」和「filterConfigList」並將對齊改成預設(stretch)
                 var ulBoardName = document.createElement("ul");
-                ulBoardName.className = "list list-name";
+                ulBoardName.className = "list ulBoard";
                 ulBoardName.id = "boardList";
                 var ulFilterList = document.createElement("ul");
-                ulFilterList.className = "list list-data";
+                ulFilterList.className = "list ulFilter";
                 ulFilterList.id = "filterConfigList";
 
                 document.getElementById("rootDiv").appendChild(ulBoardName);
@@ -682,6 +762,37 @@
             });
         }
     
+    function setAttributeForAllDescendants(element, index, itemIndex) {
+        // 首先，為當前元素設定屬性
+        element.setAttribute("boardIndex", index);
+        element.setAttribute("listIndex", itemIndex);
+
+        // 然後遞迴設定所有子元素的同樣屬性
+        // Array.from(element.children).forEach(child => {
+        //     setAttributeForAllDescendants(child, index, itemIndex);
+        // });
+        for (let child of element.children) {
+            setAttributeForAllDescendants(child, index, itemIndex); //遞迴呼叫以設定屬性
+        }
+    }
+
+    /*測試直接載入*/
+    var initDataStr = window.Telegram.WebApp.initData;
+    //測試用initData上傳時記得刪除
+    
+    // var ulBoardName = document.createElement("ul");
+    // ulBoardName.className = "list ulBoard";
+    // ulBoardName.id = "boardList";
+    // var ulFilterList = document.createElement("ul");
+    // ulFilterList.className = "list ulFilter";
+    // ulFilterList.id = "filterConfigList";
+
+    // document.getElementById("rootDiv").appendChild(ulBoardName);
+    // document.getElementById("rootDiv").appendChild(ulFilterList);
+    // document.getElementById("rootDiv").style.alignItems = "stretch";
+    // document.getElementById("loader").style.display = "none";
+    // updateFilterConfig(0);
+    /*以上測試用*/
 </script>
 
 </body>

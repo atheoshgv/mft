@@ -83,7 +83,7 @@
             content: '';           /* 建立一個偽元素來佔位 */
             
         }
-        .list-item.selected {
+        .list-item.filterList.selected {
             /* background-color: hsla(0, 100%, 50%, 0.445); */
             /* border: 5px solid #eb0606 !important; */
             background-color: #fff3e0; /* 浅橙色背景 */
@@ -101,7 +101,10 @@
         }
         /*filterList*/
         .list-item.filterList{
-            overflow: hidden;
+/*             overflow: hidden; */
+            display: flex;
+            justify-content: space-evenly;
+            align-items: center;
             /* white-space: nowrap; */
             /* padding-right: 3rem; */
             /* width: 12rem; */

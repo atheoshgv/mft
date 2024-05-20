@@ -1,11 +1,6 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
-    <!-- 
-        後續目標：
-            個別關鍵字關開，呈現以switch或拖曳(1.最下方加入分隔線，拖拉至分隔線以下關閉該項 2.右方加入一區，往右拖關閉該項)
-            (Done)li內innerText替換成input，下方input刪除
-     -->
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -39,7 +34,7 @@
             100% { transform: rotate(360deg); }
         }
         .rootDiv {
-/*             width: 30rem; */
+            /* width: 30rem; */
             width: 100%;
             height: 22rem;
             display: flex;
@@ -55,13 +50,15 @@
         }
         .ulBoard {
             width: 9rem;
-            font-size: 0.85rem;
+            /* width: 34.67%; */
             /* background-color: #f0f0f0; */
             background-color: white;
-            
+            /*微調項*/
+            font-size: 0.85rem;
         }
         .ulFilter {
             width: 17rem;
+            /* width: 65.33%; */
             background-color: white;
             /* min-height: 300px; */
             
@@ -96,12 +93,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            /*微調項*/
             padding-left: 0.25rem;
             padding-right: 0.25rem;
         }
         /*filterList*/
         .list-item.filterList{
-/*             overflow: hidden; */
+            /* overflow: hidden; */
             display: flex;
             justify-content: space-evenly;
             align-items: center;
@@ -117,9 +115,10 @@
             display: flex;
             /* align-items: center; */
             justify-content: center;
-            gap: 0.5rem;  /* 按鈕之間的間距 */
             margin-left: auto; 
             flex-shrink: 0;
+            /*微調項*/
+            gap: 0.5rem;  /* 按鈕之間的間距 */
         }
         .editBtn{
             height: 1.5rem;
@@ -274,7 +273,9 @@
     <button id = "loadBtn" class="loadBtn" onclick="
         loadConfig();
         ">載入設定</button>
-    <button id = "saveBtn" class="saveBtn" disabled>儲存設定</button>
+    <button id = "saveBtn" class="saveBtn" onclick="
+        saveConfig();
+        " disabled>儲存設定</button>
 </div>
 <div id="rootDiv" class="rootDiv">
     <div id="loader" class="loader"></div>
@@ -296,10 +297,12 @@
     <button style="display: block;">完成</button>
 </div> -->
 <script>
+    const MAXINPUTLENGTH = 30;
+    const cludeNumTestRegexp = /^(?:[^⊕⊝]*[⊕⊝]){0,5}[^⊕⊝]*$/;
     /*main*/
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
-    // var initDataStr = window.Telegram.WebApp.initData;
+    var initDataStr = window.Telegram.WebApp.initData;
 
 
 
@@ -346,7 +349,7 @@
                 }else{
                     g_data.boardSwitch[thisBoardIndex] = 0;
                 }
-                
+                // console.log(g_data);
                 // console.log("checkbox_Function");
             });
 
@@ -429,9 +432,14 @@
                     // var thisLi = this.parentElement.parentElement.previousElementSibling;
                     var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
                     
+                    if(cludeNumTestRegexp.test(thisFilterTextInput.value)){    //符合0~5個篩選字
+                        g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")] = thisFilterTextInput.value;
+                        updateFilterConfig(this.getAttribute("boardIndex"));
+                    }else{
+                        alert("單筆篩選條件最多5個");
+                    }
                     // thisLi.textContent = thisInput.value;
-                    g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")] = thisFilterTextInput.value;
-                    updateFilterConfig(this.getAttribute("boardIndex"));
+                    
                 });
                 
                 
@@ -447,7 +455,10 @@
                     var thisIndex = this.getAttribute("listIndex");
                     var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
 
-                    thisFilterTextInput.value += "⊕";
+                    if(thisFilterTextInput.value.length < MAXINPUTLENGTH){
+                        thisFilterTextInput.value += "⊕";
+                    }
+                    
                     thisFilterTextInput.focus();
                 });
                 excludeBtn.innerText = "排除(⊝)";
@@ -456,7 +467,10 @@
                     var thisIndex = this.getAttribute("listIndex");
                     var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
 
-                    thisFilterTextInput.value += "⊝";
+                    if(thisFilterTextInput.value.length < MAXINPUTLENGTH){
+                        thisFilterTextInput.value += "⊝";
+                    }
+                    
                     thisFilterTextInput.focus();
                 });
 
@@ -587,6 +601,25 @@
                 filterTextInput.classList.add("filterTextInput");
                 filterTextInput.value = item;
                 filterTextInput.disabled = true;
+                filterTextInput.setAttribute("maxlength", String(MAXINPUTLENGTH));    //設定最大輸入長度
+                filterTextInput.addEventListener('keydown', function(event) {
+                    var key = event.key || event.keyCode;
+                    if (key === 'Enter' || key === 13) {
+                        event.preventDefault(); //避免按下enter鍵時可能會觸發的其他預設事件，例如在表單中提交表單。
+                        /* 按下Enter等同確認修改 */
+                        // var thisIndex = this.getAttribute("listIndex");
+                        // // var thisLi = this.parentElement.parentElement.previousElementSibling;
+                        // var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
+                        if(cludeNumTestRegexp.test(this.value)){    //符合0~5個篩選字
+                            g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")] = this.value;
+                            updateFilterConfig(this.getAttribute("boardIndex"));
+                        }else{
+                            alert("單筆篩選條件最多5個");
+                        }
+                        // thisLi.textContent = thisInput.value;
+                        
+                        }
+                });
 
                 var liEditDelBtnDiv = document.createElement("div");
                 liEditDelBtnDiv.className = "liEditDelBtnDiv";
@@ -714,8 +747,15 @@
         document.getElementById("loader").style.display = "block";
 
         document.getElementById("loadBtn").disabled = true;
-        callGasFunction("readConfig");  //讀取設定後存到全域變數g_data
+        // callGasFunction("readConfig");  //讀取設定後存到全域變數g_data
+        callExternalFunction("readConfig");
 
+    }
+    function saveConfig(){
+        document.getElementById("saveBtn").disabled = true;
+        callExternalFunction("saveConfig",g_data);
+        // alert("儲存成功");
+        
     }
 
     /*
@@ -768,7 +808,89 @@
                 return 'error';
             });
         }
-    
+    // 函數處理器對應
+const functionHandlers = {
+    /*readConfig*/
+    "readConfig": function (response) {
+        var ulBoardName = document.createElement("ul");
+        ulBoardName.className = "list ulBoard";
+        ulBoardName.id = "boardList";
+        var ulFilterList = document.createElement("ul");
+        ulFilterList.className = "list ulFilter";
+        ulFilterList.id = "filterConfigList";
+
+        document.getElementById("rootDiv").appendChild(ulBoardName);
+        document.getElementById("rootDiv").appendChild(ulFilterList);
+        document.getElementById("rootDiv").style.alignItems = "stretch";
+        document.getElementById("loader").style.display = "none";
+
+        g_data = response;
+        if(g_data.firstTime == true){
+            alert("您為新使用者，編輯完各板篩選條件離開前記得按「儲存設定」");
+        }
+        updateFilterConfig(0);
+        document.getElementById("saveBtn").disabled = false;
+        return JSON.stringify(response);
+    },
+    /*saveConfig*/
+    "saveConfig": function (response) {
+        // 處理response
+        document.getElementById("saveBtn").disabled = false;
+        alert(response.result);
+
+        
+    },
+    // 更多的handlers...
+};
+
+function handleResponse(functionName, response) {
+    // 根據函數名呼叫特定的處理程序
+    const handler = functionHandlers[functionName];
+    if (handler) {
+        return handler(response);
+    } else {
+        console.error('No handler for function:', functionName);
+        // 默認行為或錯誤處理
+    }
+}
+
+function callExternalFunction(functionName, value1 = '1', value2 = '2') {
+    const url = "https://script.google.com/macros/s/AKfycbwrxPXOQNLHq4NNoYoaj49AKghlhIqIJ_UPECGZ-Vw5hSw9eCJ0UW_wEE1gP5683A6e/exec";
+    const data = {
+        "verify": initDataStr,
+        "methodCall": functionName,
+        "param1": value1,
+        "param2": value2
+    };
+
+    fetch(url, {
+        method: 'POST',
+        cache: 'no-cache',
+        headers: {
+            'Content-Type': 'text/plain'
+        },
+        redirect: 'follow',
+        body: JSON.stringify(data) // Serialize data object to JSON string
+    })
+    .then(response => response.json()) // Parse the JSON-formatted response
+    .then((response) => {
+        // 呼叫對應的響應處理函數
+        return handleResponse(functionName, response);
+    })
+    // .then((handledResponse) => {
+    //     // 更新 UI 或其他邏輯
+    //     updateUIOrOtherLogic(handledResponse);
+    // })
+    .catch((error) => {
+        console.error('Error:', error);
+        alert(error);
+        // 統一的錯誤處理
+    });
+}
+
+// function updateUIOrOtherLogic(handledResponse) {
+//     // 根據處理後的響應更新UI或進行其他邏輯處理
+// }
     function setAttributeForAllDescendants(element, index, itemIndex) {
         // 首先，為當前元素設定屬性
         element.setAttribute("boardIndex", index);
@@ -782,26 +904,6 @@
             setAttributeForAllDescendants(child, index, itemIndex); //遞迴呼叫以設定屬性
         }
     }
-
-    /*測試直接載入*/
-    var initDataStr = window.Telegram.WebApp.initData;
-    document.getElementById("rootDiv").style.display = "block";
-    document.getElementById("rootDiv").innerText = initDataStr;
-    //測試用initData上傳時記得刪除
-    
-    // var ulBoardName = document.createElement("ul");
-    // ulBoardName.className = "list ulBoard";
-    // ulBoardName.id = "boardList";
-    // var ulFilterList = document.createElement("ul");
-    // ulFilterList.className = "list ulFilter";
-    // ulFilterList.id = "filterConfigList";
-
-    // document.getElementById("rootDiv").appendChild(ulBoardName);
-    // document.getElementById("rootDiv").appendChild(ulFilterList);
-    // document.getElementById("rootDiv").style.alignItems = "stretch";
-    // document.getElementById("loader").style.display = "none";
-    // updateFilterConfig(0);
-    /*以上測試用*/
 </script>
 
 </body>

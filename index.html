@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="zh">
 <head>
+
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
@@ -96,6 +97,9 @@
             /*微調項*/
             padding-left: 0.25rem;
             padding-right: 0.25rem;
+        }
+        .list-item.liBoardName.selected{
+            border-left: 5px solid #ff0000;
         }
         /*filterList*/
         .list-item.filterList{
@@ -280,22 +284,9 @@
 <div id="rootDiv" class="rootDiv">
     <div id="loader" class="loader"></div>
 
-    <!-- 下面兩個ul改成loadConfig() > callGasFunction("readConfig") 取得response後生成 -->
-    <!-- <ul class="list ulBoard" id="boardList">
-
-    </ul>
-    <ul class="list ulFilter" id="filterConfigList">
-
-    </ul> -->
 </div>
 
-<!-- <div>
-    <p style="margin-top: 0.3rem; margin-bottom: 0.3rem;">test</p>
-    <input value="456" style="display: block;">
-    <button >包含</button>
-    <button >排除</button>
-    <button style="display: block;">完成</button>
-</div> -->
+
 <script>
     const MAXINPUTLENGTH = 30;
     const cludeNumTestRegexp = /^(?:[^⊕⊝]*[⊕⊝]){0,5}[^⊕⊝]*$/;
@@ -315,15 +306,22 @@
         g_data.board.forEach(function(name, eindex) {
             var li = document.createElement('li');
             li.className = 'list-item liBoardName';
+            if(eindex == index){
+                li.classList.add("selected");
+            }
             li.textContent = name;
             li.addEventListener('click', function() {
-                // console.log("li_Function");
-                // console.log(this.classList);
-                // if(this.classList.contains("liBoardName") == false){
-                    updateFilterConfig(eindex);
-                // }
+            // var boardNameLis = document.getElementsByClassName("liBoardName");
+            // for(bnLi of boardNameLis){
+            //     bnLi.classList.remove("selected");
+            // }
+            // this.classList.add("selected");
+
+            updateFilterConfig(eindex);
+
                 
             });
+            
 
 
             var label = document.createElement("label");
@@ -763,7 +761,7 @@
     
     */
     function callGasFunction(functionName,value1 = '1',value2 = '2') {
-            var url = "https://script.google.com/macros/s/AKfycbzGa2R5FgyaA14c-wkkNHeqcLXv6hs-4JRU0X3juTVGYq9er_2t7AGghj4Xn1vTNE0I/exec";
+            var url = "https://script.google.com/macros/s/AKfycbyPSBZlgKGlVLuEHSEG1BE6xXqZxfrWHK73iLcJvwWRBBG9Q0wuLZDemMKUTOIRj3iC/exec";
             var data = {
                 "verify": initDataStr,
                 "methodCall": functionName,
@@ -855,7 +853,7 @@ function handleResponse(functionName, response) {
 }
 
 function callExternalFunction(functionName, value1 = '1', value2 = '2') {
-    const url = "https://script.google.com/macros/s/AKfycbyytkI45fLTl6Do9DbjyaRZXKJ8_am2DGtff-ycXn_pAJh24Cox6bVI1TCHMV6kCjE_/exec";
+    const url = "https://script.google.com/macros/s/AKfycbzGa2R5FgyaA14c-wkkNHeqcLXv6hs-4JRU0X3juTVGYq9er_2t7AGghj4Xn1vTNE0I/exec";
     const data = {
         "verify": initDataStr,
         "methodCall": functionName,
@@ -904,6 +902,7 @@ function callExternalFunction(functionName, value1 = '1', value2 = '2') {
             setAttributeForAllDescendants(child, index, itemIndex); //遞迴呼叫以設定屬性
         }
     }
+
 </script>
 
 </body>

@@ -289,7 +289,7 @@
 
 <script>
     const MAXINPUTLENGTH = 30;
-    const cludeNumTestRegexp = /^(?:[^⊕⊝]*[⊕⊝]){0,5}[^⊕⊝]*$/;
+    const cludeNumTestRegexp = /^(?:[^⊕⊝]*[⊕⊝]){0,10}[^⊕⊝]*$/;
     /*main*/
     window.Telegram.WebApp.ready();
     window.Telegram.WebApp.expand();
@@ -430,11 +430,11 @@
                     // var thisLi = this.parentElement.parentElement.previousElementSibling;
                     var thisFilterTextInput = document.getElementById("filterWord" + String(thisIndex).padStart(2, "0"));
                     
-                    if(cludeNumTestRegexp.test(thisFilterTextInput.value)){    //符合0~5個篩選字
+                    if(cludeNumTestRegexp.test(thisFilterTextInput.value)){    //符合0~10個篩選字
                         g_data.filterConfig[this.getAttribute("boardIndex")][this.getAttribute("listIndex")] = thisFilterTextInput.value;
                         updateFilterConfig(this.getAttribute("boardIndex"));
                     }else{
-                        alert("單筆篩選條件最多5個");
+                        alert("單筆篩選條件最多10個");
                     }
                     // thisLi.textContent = thisInput.value;
                     
